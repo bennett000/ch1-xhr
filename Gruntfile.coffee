@@ -13,7 +13,7 @@ module.exports = (grunt) ->
           data:
             pkg: grunt.file.readJSON 'package.json'
             target: 'angular'
-            targetSrc: '1.2.9'
+            targetSrc: '1.2.14'
       workular:
         options:
           bowerJsonTemplate: 'etc/bower.json'

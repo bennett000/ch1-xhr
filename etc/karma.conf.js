@@ -16,9 +16,10 @@ module.exports = function (config) {
             files: [
                 'lib/workular/workular.min.js',
 
-                'src/ruuid.js',
+                'src/http-client.js',
 
                 'spec/mock*.js',
+                'spec/*-spec.js',
                 'spec/*Spec.js'
             ],
 

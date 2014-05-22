@@ -1,13 +1,13 @@
 {
-    "name": "ruuid",
-    "description": "Real(ly) Universal Unique Identifier",
-    "version": "0.2.0",
+    "name": "http-client",
+    "description": "http-client-interface",
+    "version": "0.1.0",
     "private": true,
     "repository": {
         "type": "git",
-        "url": "ssh://dev.higginsregister.com/srv/repo/js-ruuid.git"
+        "url": "ssh://dev.higginsregister.com/srv/repo/js-browser-http.git"
     },
-    "dependencies": {
+    "devDependencies": {
         "workular": "git+ssh://dev.higginsregister.com/srv/npm/js-workular.git#v0.5.1"
     },
     "devDependencies": {

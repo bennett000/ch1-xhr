@@ -1,20 +1,14 @@
 {
-  "name": "ruuid",
-  "version": "0.2.0",
+  "name": "http-client",
+  "version": "0.1.0",
   "authors": [
     "Michael J. Bennett <dev@michaeljbennett.info>"
   ],
-  "description": "Real(ly) Universal Unique IDentifiers",
+  "description": "http client interface",
   "moduleType": [
     "globals"
   ],
-  "keywords": [
-    "universal",
-    "global",
-    "unique",
-    "identifier"
-  ],
-	"dependencies": {
+	"devDependencies": {
 	"workular":"git+ssh://dev.higginsregister.com/srv/bower/js-workular.git#v0.5.1"
 },
   "license": "?",
