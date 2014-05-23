@@ -11,6 +11,7 @@
     "devDependencies": {
         "workular": "git+ssh://dev.higginsregister.com/srv/bower/js-workular.git#v0.5.1",
         "workular-fake-promise": "git+ssh://dev.higginsregister.com/srv/bower/js-workular-fake-promise.git",
+        "q": "q#1.0.1",
         "browser-fake-promise": "git+ssh://dev.higginsregister.com/srv/bower/js-browser-fake-promise.git"
     },
     "license": "?",

@@ -14,8 +14,11 @@ module.exports = function (config) {
 
             // list of files / patterns to load in the browser
             files: [
+                'lib/q/q.js',
+                'lib/browser-fake-promise/fake-promise.js',
+
                 'src/http.js',
-                'src/inline-xhr.js',
+                //'src/inline-xhr.js',
 
                 'spec/mock*.js',
                 'spec/mock*.js',

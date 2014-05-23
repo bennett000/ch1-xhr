@@ -1,19 +1,24 @@
 /**
  * Created by michael on 23/05/14.
  */
+/*global SimpleFakePromise */
 
-function HTTP() {
+function HTTP(newXMLHTTPRequest) {
     'use strict';
 
     // ensure object constructor
     if (!(this instanceof HTTP)) {
-        return new HTTP();
+        return new HTTP(newXMLHTTPRequest);
     }
 
     var that = this,
         log,
-        /** @const */
-        noop = function () {},
+        Q = new SimpleFakePromise(),
+        /** @dict */
+        consts = Object.freeze({
+            json: 'application/json',
+            noop: function () {}
+        }),
         /** @type {number} */
         preHookCap = 30000,
         /** @type {number} */
@@ -32,11 +37,11 @@ function HTTP() {
         log = console;
     } else {
         log = {
-            log : noop,
-            info: noop,
-            warn: noop,
-            error: noop,
-            assert: noop
+            log : consts.noop,
+            info: consts.noop,
+            warn: consts.noop,
+            error: consts.noop,
+            assert: consts.noop
         };
     }
 
@@ -61,17 +66,182 @@ function HTTP() {
     }
 
     /**
+     * Sets JS RPC to use promises instead of callbacks, using the given promise
+     * library
+     * @param lib {Object} a promise library like Q
+     * @returns {boolean}
+     *
+     * Promise library must support:
+     * lib.defer()
+     * lib.defer().resolve()
+     * lib.defer().reject()
+     * lib.defer().promise
+     * lib.defer().promise.then()
+     */
+    function setPromiseLib(lib) {
+        if (!isFunction(lib.defer)) {
+            throw new TypeError('RPC: setPromiseLib: expecting a library with a root level defer function');
+        }
+        var test = lib.defer();
+
+        if (!isFunction(test.resolve)) {
+            throw new TypeError('RPC: setPromiseLib: expecting defers to have a resolve method');
+        }
+
+        if (!isFunction(test.reject)) {
+            throw new TypeError('RPC: setPromiseLib: expecting defers to have a reject method');
+        }
+
+        if (!test.promise) {
+            throw new TypeError('RPC: setPromiseLib: expecting defer objects to have a promise');
+        }
+
+        if (!isFunction(test.promise.then)) {
+            throw new TypeError('RPC: setPromiseLib: expecting promises to have a then method');
+        }
+
+        HTTP.prototype['Q'] = lib;
+        return true;
+    }
+
+
+    /**
+     *
+     * @param method {string}
+     * @param url {string}
+     * @param queryObj {Object=}
+     * @param data {*}
+     * @param mimeType {string=}
+     * @returns {*}
+     */
+    function newRequest(method, url, queryObj, data, mimeType, headers) {
+        mimeType = (mimeType === undefined) ? consts.json : mimeType;
+        queryObj = that.parseQuery(queryObj);
+        if (queryObj !== false) {
+            url += queryObj;
+        }
+
+        /** @type {!Object} */
+        var xhr = newXMLHttpRequest(),
+        /** @type {!Object} */
+        deferred = Q.defer(),
+        timer = false;
+
+        if ((method === 'POST') || (method === 'PUT')) {
+            if (!data) {
+                deferred.reject(new Error('http: newRequest: ' + method + ': has falsy data'));
+                return deferred.promise;
+            }
+        }
+
+        function clearTimer() {
+            if (timer !== false) {
+                clearTimeout(timer);
+                timer = false;
+            }
+        }
+
+        function onerror(reason) {
+            reason = (reason === undefined) ? E.fatal : reason;
+
+            deferred.reject(new Error([S.self,
+                                          S.onerror,
+                                          reason,
+                                          JSON.stringify(url)].join(E.delim)));
+            clearTimer();
+        }
+
+        function onload() {
+            // if the document isn't ready try again later
+            if (+xhr.readyState !== 4) {
+                return setTimeout(onload, 25);
+            }
+            // if the header has a 200, or 201 status handle it
+            if ((xhr.status === 200) || (xhr.status === 201)) {
+                deferred.resolve(xhr.responseText);
+                clearTimer();
+                return;
+            }
+            // if the header has a 400/401 status trip the logout flag
+            if (( xhr.status === 401) || (xhr.status === 400)) {
+                self.HOMER.log.notice('!!! Logged Out !!!');
+                if (self.HOMER.login) {
+                    self.HOMER.login.logout();
+                }
+            }
+            // otherwise error/unexpected
+            onerror(S.status);
+        }
+
+        function onprogress(readyState) {
+            if (readyState) {
+                if (readyState.lengthComputable) {
+                    deferred.notify(readyState);
+                }
+            }
+        }
+
+        try {
+            /** @type {function(...)} */
+            xhr.onload = onload;
+            /** @type {function(...)} */
+            xhr.onerror = function (e) {
+                onerror('http error ' + e.message);
+            };
+            /** @type {function(...)} */
+            xhr.onprogress = onprogress;
+
+            xhr.open(method, url, true);
+            xhr.setRequestHeader(S.headerContent, mimeType);
+            if (xsrf !== undefined) {
+                xhr.setRequestHeader('X-XSRF-TOKEN', xsrf);
+            }
+            if (bearer !== undefined) {
+                xhr.setRequestHeader('Authorization', 'Bearer ' + bearer);
+            }
+
+            if ((data === null) ||
+                (data === false) ||
+                (data === undefined)) {
+                xhr.send();
+            } else {
+                xhr.send(JSON.stringify(data));
+            }
+        } catch (e) {
+            onerror(E.unhandled);
+            return deferred.promise;
+        }
+
+        timer = setTimeout(function () {
+            var errorstr = S.timeout;
+            try {
+                xhr.abort();
+            } catch (err) {
+                errorstr = err.message;
+            } finally {
+                onerror(errorstr);
+            }
+        }, defaultTimeout);
+
+        return deferred.promise;
+    }
+
+    /**
      * expose the api
      */
     function expose() {
-        that.setLogger = setLogger;
-        that.log = log;
+        that['setLogger'] = setLogger;
+        that['setPromiseLib'] = setPromiseLib;
+        that['log'] = log;
     }
 
     /**
      * initialize the object
      */
     function init () {
+        newXMLHTTPRequest = typeof newXMLHTTPRequest === 'function' ? newXMLHTTPRequest : function () {
+            return new XMLHttpRequest(Array.prototype.slice.call(arguments, 0));
+        };
         expose();
     }
     init();
@@ -111,6 +281,8 @@ HTTP.prototype['parseQuery'] = function parseQuery(query) {
     return rString;
 };
 
+HTTP.prototype['Q'] = new SimpleFakePromise();
+
 //
 //
 //E = E === undefined ? {
@@ -133,118 +305,6 @@ HTTP.prototype['parseQuery'] = function parseQuery(query) {
 // *
 // * @return {!Object}
 // */
-//function newRequest(method, url, queryObj, data, mimeType, xsrf, bearer) {
-//    mimeType = (mimeType === undefined) ? S.mimeJSON : mimeType;
-//    queryObj = parseQuery(queryObj);
-//    if (queryObj !== false) {
-//        url += queryObj;
-//    }
-//
-//    /** @type {!Object} */
-//    var xhr = newXMLHttpRequest(),
-//        /** @type {!Object} */
-//        deferred = Q.defer(),
-//        timer = false;
-//
-//    if ((method === 'POST') || (method === 'PUT')) {
-//        if (!data) {
-//            deferred.reject(new Error('http: newRequest: ' + method + ': has falsy data'));
-//            return deferred.promise;
-//        }
-//    }
-//
-//    function clearTimer() {
-//        if (timer !== false) {
-//            clearTimeout(timer);
-//            timer = false;
-//        }
-//    }
-//
-//    function onerror(reason) {
-//        reason = (reason === undefined) ? E.fatal : reason;
-//
-//        deferred.reject(new Error([S.self,
-//            S.onerror,
-//            reason,
-//            JSON.stringify(url)].join(E.delim)));
-//        clearTimer();
-//    }
-//
-//    function onload() {
-//        // if the document isn't ready try again later
-//        if (+xhr.readyState !== 4) {
-//            return setTimeout(onload, 25);
-//        }
-//        // if the header has a 200, or 201 status handle it
-//        if ((xhr.status === 200) || (xhr.status === 201)) {
-//            deferred.resolve(xhr.responseText);
-//            clearTimer();
-//            return;
-//        }
-//        // if the header has a 400/401 status trip the logout flag
-//        if (( xhr.status === 401) || (xhr.status === 400)) {
-//            self.HOMER.log.notice('!!! Logged Out !!!');
-//            if (self.HOMER.login) {
-//                self.HOMER.login.logout();
-//            }
-//        }
-//        // otherwise error/unexpected
-//        onerror(S.status);
-//    }
-//
-//    function onprogress(readyState) {
-//        if (readyState) {
-//            if (readyState.lengthComputable) {
-//                deferred.notify(readyState);
-//            }
-//        }
-//    }
-//
-//    try {
-//        /** @type {function(...)} */
-//        xhr.onload = onload;
-//        /** @type {function(...)} */
-//        xhr.onerror = function (e) {
-//            onerror('http error ' + e.message);
-//        };
-//        /** @type {function(...)} */
-//        xhr.onprogress = onprogress;
-//
-//        xhr.open(method, url, true);
-//        xhr.setRequestHeader(S.headerContent, mimeType);
-//        if (xsrf !== undefined) {
-//            xhr.setRequestHeader('X-XSRF-TOKEN', xsrf);
-//        }
-//        if (bearer !== undefined) {
-//            xhr.setRequestHeader('Authorization', 'Bearer ' + bearer);
-//        }
-//
-//        if ((data === null) ||
-//            (data === false) ||
-//            (data === undefined)) {
-//            xhr.send();
-//        } else {
-//            xhr.send(JSON.stringify(data));
-//        }
-//    } catch (e) {
-//        onerror(E.unhandled);
-//        return deferred.promise;
-//    }
-//
-//    timer = setTimeout(function () {
-//        var errorstr = S.timeout;
-//        try {
-//            xhr.abort();
-//        } catch (err) {
-//            errorstr = err.message;
-//        } finally {
-//            onerror(errorstr);
-//        }
-//    }, defaultTimeout);
-//
-//    return deferred.promise;
-//}
-//
 ///** @return {!Object} */
 //function promisePreHooks() {
 //    /** @type {!Object} */

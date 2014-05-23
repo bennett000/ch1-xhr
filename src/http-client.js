@@ -24,8 +24,7 @@ workular.module('js-http', []).factory('stringsHTTP', [function () {
     S['status'] = 'status code';
     /** @type {string} */
     S['timeout'] = 'request timed out';
-    /** @type {string} */
-    S['mimeJSON'] = 'application/json';
+
     /** @type {string} */
     S['headerContent'] = 'Content-Type';
     /** @type {string} */
