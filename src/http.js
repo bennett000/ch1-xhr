@@ -253,7 +253,9 @@ function HTTP(newXMLHTTPRequest) {
 
             xhr.open(method, url, true);
             xhr.setRequestHeader('Content-Type', mimeType);
-            setHeaders(xhr, headers);
+            if ((headers) && (typeof headers === 'object')) {
+                setHeaders(xhr, headers);
+            }
             /*
             if (xsrf !== undefined) {
                 xhr.setRequestHeader('X-XSRF-TOKEN', xsrf);
@@ -278,9 +280,10 @@ function HTTP(newXMLHTTPRequest) {
             var errorstr = 'request timed out';
             try {
                 xhr.abort();
+                onerror(errorstr);
+
             } catch (err) {
                 errorstr = err.message;
-            } finally {
                 onerror(errorstr);
             }
         }, defaultTimeout);

@@ -3,14 +3,18 @@
  * Created by michael on 23/05/14
  */
 
-/*global window, jasmine, beforeEach, describe, expect, waitsFor, spyOn, runs, it, module,inject, workular, HTTP, Q*/
+/*global window, jasmine, beforeEach, describe, expect, waitsFor, spyOn, runs, it, module,inject, workular, HTTP, Q, MockHttpRequest*/
 
-var http;
+var http, mocks = [];
 
 beforeEach(function () {
     'use strict';
+    mocks = [];
 
-    http = new HTTP();
+    http = new HTTP(function (){
+        mocks.push(new MockHttpRequest())
+        return mocks[mocks.length - 1];
+    });
 });
 
 describe('http API', function () {
@@ -75,10 +79,82 @@ describe('promise configuration', function () {
     });
 });
 
+describe('methods', function () {
+    'use strict';
+
+    describe('get', function () {
+        var result;
+        it('should return a promise', function () {
+            result = http.get('myResource');
+            expect(typeof result.then).toBe('function');
+        });
+
+        it('should resolve the promise on a valid response', function () {
+            var done = false;
+            http.get('myResource').then(function (result) {
+                done = true;
+                expect(result).toBe('done!');
+            }, function (reason) {
+                done = false;
+                console.log(reason);
+            });
+
+            expect(mocks[0].method).toBe('GET');
+            expect(mocks[0].url).toBe('myResource');
+            expect(mocks[0].getRequestHeader('Content-Type')).toBe('application/json');
+
+
+            mocks[0].receive(200, 'done!');
+            expect(done).toBe(true);
+        });
+
+        it('should resolve the promise on an invalid response', function () {
+            var done = false;
+            http.get('myResource').then(function (result) {
+                done = false;
+            }, function () {
+                done = true;
+            });
+
+            expect(mocks[0].method).toBe('GET');
+            expect(mocks[0].url).toBe('myResource');
+            expect(mocks[0].getRequestHeader('Content-Type')).toBe('application/json');
+
+            mocks[0].receive(500, 'done!');
+            expect(done).toBe(true);
+        });
+
+    });
+
+    describe('put', function () {
+    });
+
+    describe('post', function () {
+
+    });
+});
+
 describe('on no access', function () {
     'use strict';
 
     it('should call on no access registered functions', function () {
+        var done = false;
+
+        http.onNoAccess(function () {
+            done = true;
+        });
+
+        http.get('myResource').then(function (result) {
+        }, function (reason) {
+        });
+
+        expect(mocks[0].method).toBe('GET');
+        expect(mocks[0].url).toBe('myResource');
+        expect(mocks[0].getRequestHeader('Content-Type')).toBe('application/json');
+
+
+        mocks[0].receive(401, 'done!');
+        expect(done).toBe(true);
 
     });
 
