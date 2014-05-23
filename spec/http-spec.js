@@ -127,10 +127,95 @@ describe('methods', function () {
     });
 
     describe('put', function () {
+        var result;
+        it('should return a promise', function () {
+            result = http.put('myResource', 'mydata');
+            expect(typeof result.then).toBe('function');
+        });
+
+        it('should resolve the promise on a valid response', function () {
+            var done = false;
+            http.put('myResource', 'mydata').then(function (result) {
+                done = true;
+                expect(result).toBe('done!');
+            }, function (reason) {
+                done = false;
+                console.log(reason);
+            });
+
+            expect(mocks[0].method).toBe('PUT');
+            expect(mocks[0].url).toBe('myResource');
+            expect(mocks[0].requestText).toBe(JSON.stringify('mydata'));
+            expect(mocks[0].getRequestHeader('Content-Type')).toBe('application/json');
+
+
+            mocks[0].receive(200, 'done!');
+            expect(done).toBe(true);
+        });
+
+        it('should resolve the promise on an invalid response', function () {
+            var done = false;
+            http.put('myResource', 'mydata').then(function (result) {
+                done = false;
+            }, function (reason) {
+                done = true;
+            });
+
+            expect(mocks[0].method).toBe('PUT');
+            expect(mocks[0].url).toBe('myResource');
+            expect(mocks[0].requestText).toBe(JSON.stringify('mydata'));
+            expect(mocks[0].getRequestHeader('Content-Type')).toBe('application/json');
+
+
+            mocks[0].receive(500, 'done!');
+            expect(done).toBe(true);
+        });
     });
 
     describe('post', function () {
+        var result;
+        it('should return a promise', function () {
+            result = http.post('myResource', 'mydata');
+            expect(typeof result.then).toBe('function');
+        });
 
+        it('should resolve the promise on a valid response', function () {
+            var done = false;
+            http.post('myResource', 'mydata').then(function (result) {
+                done = true;
+                expect(result).toBe('done!');
+            }, function (reason) {
+                done = false;
+                console.log(reason);
+            });
+
+            expect(mocks[0].method).toBe('POST');
+            expect(mocks[0].url).toBe('myResource');
+            expect(mocks[0].requestText).toBe(JSON.stringify('mydata'));
+            expect(mocks[0].getRequestHeader('Content-Type')).toBe('application/json');
+
+
+            mocks[0].receive(200, 'done!');
+            expect(done).toBe(true);
+        });
+
+        it('should resolve the promise on an invalid response', function () {
+            var done = false;
+            http.post('myResource', 'mydata').then(function (result) {
+                done = false;
+            }, function (reason) {
+                done = true;
+            });
+
+            expect(mocks[0].method).toBe('POST');
+            expect(mocks[0].url).toBe('myResource');
+            expect(mocks[0].requestText).toBe(JSON.stringify('mydata'));
+            expect(mocks[0].getRequestHeader('Content-Type')).toBe('application/json');
+
+
+            mocks[0].receive(500, 'done!');
+            expect(done).toBe(true);
+        });
     });
 });
 
