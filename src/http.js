@@ -23,16 +23,6 @@ function HTTP(newXMLHTTPRequest) {
         /** @type Array.<function(...)> */
         noAccessHooks = [],
         /** @type {number} */
-        preHookCap = 30000,
-        /** @type {number} */
-        preHookInitDelay = 500,
-        /** @type {number} */
-        preHookDelay = 500,
-        /** @type {number} */
-        preHookRate = 1.5,
-        /** @type {Array.<Object>} */
-        preHooks = [],
-        /** @type {number} */
         defaultTimeout = 190000;
 
     /*global console*/
@@ -262,7 +252,7 @@ function HTTP(newXMLHTTPRequest) {
             xhr.onprogress = onprogress;
 
             xhr.open(method, url, true);
-            xhr.setRequestHeader(S.headerContent, mimeType);
+            xhr.setRequestHeader('Content-Type', mimeType);
             setHeaders(xhr, headers);
             /*
             if (xsrf !== undefined) {
@@ -306,6 +296,7 @@ function HTTP(newXMLHTTPRequest) {
         that['setPromiseLib'] = setPromiseLib;
         that['defaultHeader'] = defaultHeader;
         that['onNoAccess'] = addNoAccess;
+        that['newRequest'] = newRequest;
         that['log'] = log;
     }
 
@@ -320,6 +311,43 @@ function HTTP(newXMLHTTPRequest) {
     }
     init();
 }
+
+/**
+ * @param {string} url
+ * @param {Object=} queryObj
+ * @param {Object=} headers
+ *
+ * @return {!Object}
+ */
+HTTP.prototype['get'] = function get(url, queryObj, headers) {
+    'use strict';
+    return this.newRequest('GET', url, queryObj, undefined, undefined, headers);
+};
+
+/**
+* @param {string} url
+* @param {*} data
+* @param {Object=} queryObj
+* @param {Object=} headers
+*
+* @return {!Object}
+*/
+HTTP.prototype['put'] = function put(url, data, queryObj, headers) {
+    'use strict';
+    return this.newRequest('PUT', url, queryObj, data, undefined, headers);
+};
+
+/**
+* @param {string} url
+* @param {*} data
+* @param {!Object=} queryObj
+*
+* @return {!Object}
+*/
+HTTP.prototype['post'] = function post(url, data, queryObj, headers) {
+    'use strict';
+    return this.newRequest('POST', url, queryObj, data, undefined, headers);
+};
 
 /**
  * @param {string=} query
@@ -349,125 +377,10 @@ HTTP.prototype['parseQuery'] = function parseQuery(query) {
             rString += [i, '=', encodeURIComponent(query[i])].join('');
         });
     } catch (err) {
-        this.log.warning('http: parseQuery: ' + err.message);
+        this.log.warn('http: parseQuery: ' + err.message);
         return '';
     }
     return rString;
 };
 
 HTTP.prototype['Q'] = new SimpleFakePromise();
-
-//
-//
-//E = E === undefined ? {
-//    delim: ' : ',
-//    fatal: ' fatal ',
-//    remoteData: ' remoteData ',
-//    unhandled: ' unhandled'
-//} : E;
-//
-
-//
-///**
-// * @param {string} method
-// * @param {string} url
-// * @param {Object=} queryObj
-// * @param {*=} data
-// * @param {string=} mimeType
-// * @param {string} xsrf
-// * @param {string} bearer
-// *
-// * @return {!Object}
-// */
-///** @return {!Object} */
-//function promisePreHooks() {
-//    /** @type {!Object} */
-//    var vow = Q.defer(),
-//        /** @type {Array} */
-//        hookResults = [];
-//
-//    if (preHookDelay > preHookCap) {
-//        preHookDelay = preHookCap;
-//    }
-//
-//    preHooks.forEach(function (hook) {
-//        hookResults.push(hook());
-//    });
-//    Q.all(hookResults).then(function goodHooks() {
-//        preHookDelay = preHookInitDelay;
-//        vow.resolve(true);
-//    }, function badHooks(reason) {
-//        setTimeout(function () {
-//            vow.reject(reason);
-//        }, preHookDelay *= preHookRate);
-//    }).fail(function (reason) {
-//        setTimeout(function () {
-//            vow.reject(reason);
-//        }, preHookDelay *= preHookRate);
-//    }).done();
-//
-//    return vow.promise;
-//}
-//
-///**
-// * @param {string} url
-// * @param {!Object=} queryObj
-// *
-// * @return {!Object}
-// */
-//function get(url, queryObj) {
-//    return promisePreHooks().then(self.HOMER.bearer).then(function (bearer) {
-//        return newRequest(S.get, url, queryObj, undefined, undefined, undefined, bearer);
-//    });
-//}
-//
-///**
-// * @param {string} url
-// * @param {*} data
-// * @param {!Object=} queryObj
-// *
-// * @return {!Object}
-// */
-//function put(url, data, queryObj) {
-//    return promisePreHooks().then(self.HOMER.xsrf).then(function (xsrf) {
-//        return self.HOMER.bearer().then(function (bearer) {
-//            return newRequest(S.put, url, queryObj, data, undefined, xsrf, bearer);
-//        });
-//    });
-//}
-//
-///**
-// * @param {string} url
-// * @param {*} data
-// * @param {!Object=} queryObj
-// *
-// * @return {!Object}
-// */
-//function post(url, data, queryObj) {
-//    return promisePreHooks().then(self.HOMER.xsrf).then(function (xsrf) {
-//        return self.HOMER.bearer().then(function (bearer) {
-//            return newRequest(S.post, url, queryObj, data, undefined, xsrf, bearer);
-//        });
-//    });
-//}
-//
-//http = Object.create(null, {
-//    'get': {
-//        value: get,
-//        configurable: false
-//    },
-//    'put': {
-//        value: put,
-//        configurable: false
-//    },
-//    'post': {
-//        value: post,
-//        configurable: false
-//    },
-//    'timeout': {
-//        value: function () {
-//            return defaultTimeout;
-//        },
-//        writable: false
-//    }
-//});

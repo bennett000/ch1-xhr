@@ -58,6 +58,12 @@ describe('http API', function () {
     it('should have a setPromiseLib function', function () {
         expect(typeof http.setPromiseLib).toBe('function');
     });
+
+    it('should have PUT/POST/GET functions', function () {
+        expect(typeof http.put).toBe('function');
+        expect(typeof http.post).toBe('function');
+        expect(typeof http.get).toBe('function');
+    });
 });
 
 describe('promise configuration', function () {
