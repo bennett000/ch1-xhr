@@ -255,6 +255,8 @@ function HTTP(newXMLHTTPRequest) {
             xhr.setRequestHeader('Content-Type', mimeType);
             if ((headers) && (typeof headers === 'object')) {
                 setHeaders(xhr, headers);
+            } else {
+                setDefaultHeaders(xhr);
             }
             /*
             if (xsrf !== undefined) {

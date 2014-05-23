@@ -124,6 +124,49 @@ describe('methods', function () {
             expect(done).toBe(true);
         });
 
+        it('should resolve the promise with default headers', function () {
+            var done = false;
+            http.defaultHeader('Authorization', 'tomato');
+            http.get('myResource').then(function (result) {
+                done = true;
+                expect(result).toBe('done!');
+            }, function (reason) {
+                done = false;
+                console.log(reason);
+            });
+
+            expect(mocks[0].method).toBe('GET');
+            expect(mocks[0].url).toBe('myResource');
+            expect(mocks[0].getRequestHeader('Content-Type')).toBe('application/json');
+            expect(mocks[0].getRequestHeader('Authorization')).toBe('tomato');
+
+
+            mocks[0].receive(200, 'done!');
+            expect(done).toBe(true);
+        });
+
+        it('should resolve the promise with the provided headers', function () {
+            var done = false;
+            http.defaultHeader('Authorization', 'tomato');
+            http.get('myResource', undefined, {Authorization: 'pizza', 'X-mde': 'steak'}).then(function (result) {
+                done = true;
+                expect(result).toBe('done!');
+            }, function (reason) {
+                done = false;
+                console.log(reason);
+            });
+
+            expect(mocks[0].method).toBe('GET');
+            expect(mocks[0].url).toBe('myResource');
+            expect(mocks[0].getRequestHeader('Content-Type')).toBe('application/json');
+            expect(mocks[0].getRequestHeader('Authorization')).toBe('tomato, pizza');
+            expect(mocks[0].getRequestHeader('X-mde')).toBe('steak');
+
+
+            mocks[0].receive(200, 'done!');
+            expect(done).toBe(true);
+        });
+
     });
 
     describe('put', function () {
@@ -131,6 +174,17 @@ describe('methods', function () {
         it('should return a promise', function () {
             result = http.put('myResource', 'mydata');
             expect(typeof result.then).toBe('function');
+        });
+
+        it('should fail with no data', function () {
+            var done = false;
+            http.put('myResource').then(function (result) {
+                done = false;
+            }, function (reason) {
+                done = true;
+            });
+
+            expect(done).toBe(true);
         });
 
         it('should resolve the promise on a valid response', function () {
@@ -168,6 +222,28 @@ describe('methods', function () {
 
 
             mocks[0].receive(500, 'done!');
+            expect(done).toBe(true);
+        });
+
+        it('should resolve the promise with default headers', function () {
+            var done = false;
+            http.defaultHeader('Authorization', 'tomato');
+            http.put('myResource', 'mydata').then(function (result) {
+                done = true;
+                expect(result).toBe('done!');
+            }, function (reason) {
+                done = false;
+                console.log(reason);
+            });
+
+            expect(mocks[0].method).toBe('PUT');
+            expect(mocks[0].url).toBe('myResource');
+            expect(mocks[0].requestText).toBe(JSON.stringify('mydata'));
+            expect(mocks[0].getRequestHeader('Content-Type')).toBe('application/json');
+            expect(mocks[0].getRequestHeader('Authorization')).toBe('tomato');
+
+
+            mocks[0].receive(200, 'done!');
             expect(done).toBe(true);
         });
     });
@@ -179,6 +255,17 @@ describe('methods', function () {
             expect(typeof result.then).toBe('function');
         });
 
+        it('should fail with no data', function () {
+            var done = false;
+            http.post('myResource').then(function (result) {
+                done = false;
+            }, function (reason) {
+                done = true;
+            });
+
+            expect(done).toBe(true);
+        });
+
         it('should resolve the promise on a valid response', function () {
             var done = false;
             http.post('myResource', 'mydata').then(function (result) {
@@ -214,6 +301,28 @@ describe('methods', function () {
 
 
             mocks[0].receive(500, 'done!');
+            expect(done).toBe(true);
+        });
+
+        it('should resolve the promise with default headers', function () {
+            var done = false;
+            http.defaultHeader('Authorization', 'tomato');
+            http.post('myResource', 'mydata').then(function (result) {
+                done = true;
+                expect(result).toBe('done!');
+            }, function (reason) {
+                done = false;
+                console.log(reason);
+            });
+
+            expect(mocks[0].method).toBe('POST');
+            expect(mocks[0].url).toBe('myResource');
+            expect(mocks[0].requestText).toBe(JSON.stringify('mydata'));
+            expect(mocks[0].getRequestHeader('Content-Type')).toBe('application/json');
+            expect(mocks[0].getRequestHeader('Authorization')).toBe('tomato');
+
+
+            mocks[0].receive(200, 'done!');
             expect(done).toBe(true);
         });
     });
