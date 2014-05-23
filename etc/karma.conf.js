@@ -14,10 +14,9 @@ module.exports = function (config) {
 
             // list of files / patterns to load in the browser
             files: [
-                'lib/workular/workular.min.js',
-
                 'src/http-client.js',
 
+                'spec/mock*.js',
                 'spec/mock*.js',
                 'spec/*-spec.js',
                 'spec/*Spec.js'
