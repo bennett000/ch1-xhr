@@ -433,6 +433,24 @@ describe('defaultHeader functionality', function () {
         expect(JSON.stringify(http.defaultHeader())).toBe(JSON.stringify(results[0]));
     });
 
+    it('should be able to get/set default Headers', function () {
+        var test = [
+            {key: 'Content', value: 'Cheese'}
+        ], results = [];
+        test.forEach(function (params) {
+            var obj = Object.create(null);
+            obj[params.key] = params.value;
+            results.push(obj);
+        });
+
+
+        expect(JSON.stringify(http.defaultHeader())).toBe(JSON.stringify(Object.create(null)));
+        http.defaultHeader(test[0].key, test[0].value);
+        expect(JSON.stringify(http.defaultHeader())).toBe(JSON.stringify(results[0]));
+        http.defaultHeader(test[0].key, '');
+        expect(JSON.stringify(http.defaultHeader())).toBe(JSON.stringify(Object.create(null)));
+    });
+
     it('should return false given invalid headers', function () {
         expect(http.defaultHeader({chill: function () {}})).toBe(false);
     });
