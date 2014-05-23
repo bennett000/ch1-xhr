@@ -43,6 +43,14 @@ describe('http API', function () {
         expect(typeof http.setLogger).toBe('function');
     });
 
+    it('should have an on new access function', function () {
+        expect(typeof http.onNoAccess).toBe('function');
+    });
+
+    it('should have a defaultHeader function', function () {
+        expect(typeof http.defaultHeader).toBe('function');
+    });
+
     it('should have a parseQuery function', function () {
         expect(typeof http.parseQuery).toBe('function');
     });
@@ -58,6 +66,41 @@ describe('promise configuration', function () {
     it('should replace its default simple promises with a given library', function () {
         http.setPromiseLib(Q);
         expect(typeof http.Q.all).toBe('function');
+    });
+});
+
+describe('on no access', function () {
+    'use strict';
+
+    it('should call on no access registered functions', function () {
+
+    });
+
+    it('should return false given an invalid parameter', function () {
+        expect(http.onNoAccess({})).toBe(false);
+        expect(http.onNoAccess(function () {})).toBe(true);
+    });
+});
+
+describe('defaultHeader functionality', function () {
+    'use strict';
+
+    it('should be able to get/set default Headers', function () {
+        var test = [{key: 'Content', value: 'Cheese'}], results = [];
+        test.forEach(function (params) {
+            var obj = Object.create(null);
+            obj[params.key] = params.value;
+            results.push(obj);
+        });
+
+
+        expect(JSON.stringify(http.defaultHeader())).toBe(JSON.stringify(Object.create(null)));
+        http.defaultHeader(test[0].key, test[0].value);
+        expect(JSON.stringify(http.defaultHeader())).toBe(JSON.stringify(results[0]));
+    });
+
+    it('should return false given invalid headers', function () {
+        expect(http.defaultHeader({chill:function () {}})).toBe(false);
     });
 });
 
