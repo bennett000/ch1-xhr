@@ -11,7 +11,7 @@ beforeEach(function () {
     'use strict';
     mocks = [];
 
-    http = new HTTP(function (){
+    http = new HTTP(function () {
         mocks.push(new MockHttpRequest())
         return mocks[mocks.length - 1];
     });
@@ -76,6 +76,62 @@ describe('promise configuration', function () {
     it('should replace its default simple promises with a given library', function () {
         http.setPromiseLib(Q);
         expect(typeof http.Q.all).toBe('function');
+    });
+
+    it('should throw given an invalid promise', function () {
+        var noop = function () {};
+        expect(function () {
+            http.setPromiseLib({});
+        }).toThrow();
+
+        expect(function () {
+            http.setPromiseLib({defer: function () {
+                return {
+                    resolve: {}
+                };
+            }});
+        }).toThrow();
+
+        expect(function () {
+            http.setPromiseLib({defer: function () {
+                return {
+                    resolve: noop,
+                    reject: {}
+                };
+            }});
+        }).toThrow();
+
+        expect(function () {
+            http.setPromiseLib({defer: function () {
+                return {
+                    resolve: noop,
+                    reject: noop
+                };
+            }});
+        }).toThrow();
+
+        expect(function () {
+            http.setPromiseLib({defer: function () {
+                return {
+                    resolve: noop,
+                    reject: noop,
+                    promise: {}
+                };
+            }});
+        }).toThrow();
+
+        expect(function () {
+            http.setPromiseLib({defer: function () {
+                return {
+                    resolve: noop,
+                    reject: noop,
+                    promise: {
+                        then: noop
+                    }
+                };
+            }});
+        }).not.toThrow();
+
     });
 });
 
@@ -362,7 +418,9 @@ describe('defaultHeader functionality', function () {
     'use strict';
 
     it('should be able to get/set default Headers', function () {
-        var test = [{key: 'Content', value: 'Cheese'}], results = [];
+        var test = [
+            {key: 'Content', value: 'Cheese'}
+        ], results = [];
         test.forEach(function (params) {
             var obj = Object.create(null);
             obj[params.key] = params.value;
@@ -376,7 +434,7 @@ describe('defaultHeader functionality', function () {
     });
 
     it('should return false given invalid headers', function () {
-        expect(http.defaultHeader({chill:function () {}})).toBe(false);
+        expect(http.defaultHeader({chill: function () {}})).toBe(false);
     });
 });
 
@@ -385,13 +443,13 @@ describe('logger functions', function () {
 
     it('setLogger should upgrade the logger', function () {
         var log = false, info = false, warn = false, error = false, assert = false,
-            flog = {
-                log: function () { log = true; },
-                info: function () { info = true; },
-                warn: function () { warn = true; },
-                error: function () { error = true; },
-                assert: function () { assert = true; }
-            }, oldConsole;
+        flog = {
+            log   : function () { log = true; },
+            info  : function () { info = true; },
+            warn  : function () { warn = true; },
+            error : function () { error = true; },
+            assert: function () { assert = true; }
+        }, oldConsole;
         expect(typeof http.setLogger).toBe('function');
         http.setLogger(flog);
 
@@ -445,13 +503,13 @@ describe('parseQuery function', function () {
 
         expect(http.parseQuery(
         {
-            age: 5,
+            age : 5,
             name: 'joe'
         })).toBe('?age=5&name=joe');
 
         expect(http.parseQuery(
         {
-            age: 5,
+            age : 5,
             name: 'joe w'
         })).toBe('?age=5&name=joe%20w');
     });
