@@ -14,7 +14,8 @@ module.exports = function (config) {
 
             // list of files / patterns to load in the browser
             files: [
-                'src/http-client.js',
+                'src/http.js',
+                'src/inline-xhr.js',
 
                 'spec/mock*.js',
                 'spec/mock*.js',
