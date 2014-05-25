@@ -6,14 +6,6 @@ module.exports = (grunt) ->
     pkg: grunt.file.readJSON 'package.json'
 
     writeBowerJson:
-      angular:
-        options:
-          bowerJsonTemplate: 'etc/bower.json'
-          dest: 'build/browser-angular/bower.json'
-          data:
-            pkg: grunt.file.readJSON 'package.json'
-            target: 'angular'
-            targetSrc: '1.2.14'
       workular:
         options:
           bowerJsonTemplate: 'etc/bower.json'
@@ -23,11 +15,6 @@ module.exports = (grunt) ->
             target: 'workular'
             targetSrc:"git+ssh://dev.higginsregister.com/srv/bower/js-workular.git#v0.5.1"
 
-    replace:
-      angular:
-        src: 'tmp/ruuid-browser-workular.js'
-        dest: 'tmp/ruuid-browser-angular.js'
-        replacements: [{from:'workular', to:'angular'}]
 
     mkdir:
       buildEnvironement:
@@ -35,10 +22,7 @@ module.exports = (grunt) ->
           create: [
             'tmp',
             'build',
-            'build/browser-angular',
-            'build/browser-workular',
-            'build/node-workular',
-            'build/node-workular/lib'
+            'build/browser-workular'
           ]
 
     jshint:
@@ -48,15 +32,9 @@ module.exports = (grunt) ->
       buildWorkular:
         options:
           sourceMap: true,
-          sourceMapName: 'build/browser-workular/ruuid.min.js.map'
+          sourceMapName: 'build/browser-workular/http-client.min.js.map'
         files:
-          'build/browser-workular/ruuid.min.js': ['tmp/ruuid-browser-workular.js']
-      buildAngular:
-        options:
-          sourceMap: true,
-          sourceMapName: 'build/browser-angular/ruuid.min.js.map'
-        files:
-          'build/browser-angular/ruuid.min.js': ['tmp/ruuid-browser-angular.js']
+          'build/browser-workular/http-client.min.js': ['tmp/intermediate.js']
       pristine:
         options:
           mangle: false
@@ -64,52 +42,32 @@ module.exports = (grunt) ->
           beautify: true
           preserveComments: true
         files:
-          'build/browser-workular/ruuid.js': ['tmp/ruuid-browser-workular.js']
-          'build/browser-angular/ruuid.js': ['tmp/ruuid-browser-angular.js']
+          'build/browser-workular/http-client.js': ['tmp/intermediate.js']
 
-    copy:
-      asyncNodeWorkular:
-        expand: true
-        flatten: true
-        filter: 'isFile'
-        src: 'src/ruuid.js'
-        dest: 'build/node-workular/'
-      packageNodeWorkular:
-        expand: true
-        flatten: true
-        filter: 'isFile'
-        src: 'package.json'
-        dest: 'build/node-workular/'
-      readmeNodeWorkular:
-        expand: true
-        flatten: true
-        filter: 'isFile'
-        src: 'README.md'
-        dest: 'build/node-workular/'
+    concat:
+      code:
+        src: ['src/workular-shell.js']
+        dest: 'tmp/intermediate.js'
 
-    preprocessor:
-      node:
-        options:
-          context:
-            NODE: true
-        files:
-          'tmp/ruuid-node.js': ['src/ruuid.js']
-      browser:
-        options:
-          context:
-            BROWSER: true
-        files:
-          'tmp/ruuid-browser-workular.js': ['src/ruuid.js']
+    insert:
+      options: {}
+      workularHTTP:
+        src: 'src/http.js'
+        dest: 'tmp/intermediate.js'
+        match: '//###HTTPBODY'
+      workularXHR:
+        src: 'src/inline-xhr.js'
+        dest: 'tmp/intermediate.js'
+        match: '//###XHRBODY'
 
 
   grunt.loadNpmTasks 'grunt-contrib-uglify'
   grunt.loadNpmTasks 'grunt-contrib-jshint'
   grunt.loadNpmTasks 'grunt-mkdir'
-  grunt.loadNpmTasks 'grunt-contrib-copy'
-  grunt.loadNpmTasks 'grunt-text-replace'
-  grunt.loadNpmTasks 'grunt-preprocessor'
+  grunt.loadNpmTasks 'grunt-contrib-concat'
   grunt.loadNpmTasks 'grunt-write-bower-json'
+  grunt.loadNpmTasks 'grunt-insert'
 
-  grunt.registerTask('build', ['mkdir', 'preprocessor', 'replace', 'uglify', 'copy', 'writeBowerJson'])
+  grunt.registerTask('build', ['mkdir', 'concat', 'insert', 'uglify', 'writeBowerJson'])
   grunt.registerTask('default', ['build'])
 
