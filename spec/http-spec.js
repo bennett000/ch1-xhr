@@ -67,10 +67,64 @@ describe('http API', function () {
         expect(typeof http.timeout).toBe('function');
     });
 
+    it('should have an online function', function () {
+        expect(typeof http.online).toBe('function');
+    });
+
     it('should have PUT/POST/GET functions', function () {
         expect(typeof http.put).toBe('function');
         expect(typeof http.post).toBe('function');
         expect(typeof http.get).toBe('function');
+    });
+});
+
+describe('timeout configuration', function () {
+    'use strict';
+
+    it('should be online by default', function () {
+        expect(http.online()).toBe(true);
+    });
+
+    it('should set to false', function () {
+        expect(http.online(false)).toBe(false);
+    });
+
+    it('should not work when offline', function () {
+        var done = false;
+        expect(http.online()).toBe(true);
+        expect(http.online(false)).toBe(false);
+        http.get('something').then(function notExpected() {
+
+        }, function expected() {
+            done = true;
+        });
+
+        expect(http.online()).toBe(false);
+        expect(done).toBe(true);
+    });
+
+    it('should work when put back online', function () {
+        var done1 = false, done2 = false;
+
+        expect(http.online()).toBe(true);
+
+        expect(http.online(false)).toBe(false);
+        http.get('something').then(function notExpected() {
+
+        }, function expected() {
+            done1 = true;
+        });
+
+        expect(http.online(false)).toBe(false);
+        expect(done1).toBe(true);
+
+        expect(http.online(true)).toBe(true);
+        http.get('somethingElse').then(function () {
+            done2 = true;
+        });
+
+        mocks[0].receive(200);
+        expect(done2).toBe(true);
     });
 });
 

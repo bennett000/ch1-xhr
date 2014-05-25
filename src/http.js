@@ -23,6 +23,8 @@ function HTTP(newXMLHTTPRequest) {
         defaultHeaders = Object.create(null),
         /** @type Array.<function(...)> */
         noAccessHooks = [],
+        /** @type {boolean} default to true */
+        isOnline = true,
         /** @type {number} */
         defaultTimeout = 190000;
 
@@ -173,7 +175,6 @@ function HTTP(newXMLHTTPRequest) {
         });
     }
 
-
     /**
      *
      * @param method {string}
@@ -184,6 +185,12 @@ function HTTP(newXMLHTTPRequest) {
      * @returns {*}
      */
     function newRequest(method, url, queryObj, data, mimeType, headers) {
+        if (isOnline === false) {
+            var d = Q.defer();
+            d.reject(new Error('http: offline'));
+            return d.promise;
+        }
+
         mimeType = (mimeType === undefined) ? consts.json : mimeType;
         queryObj = that.parseQuery(queryObj);
         if (queryObj !== false) {
@@ -241,7 +248,9 @@ function HTTP(newXMLHTTPRequest) {
         function onprogress(readyState) {
             if (readyState) {
                 if (readyState.lengthComputable) {
-                    deferred.notify(readyState);
+                    if (typeof deferred.notify === 'function') {
+                        deferred.notify(readyState);
+                    }
                 }
             }
         }
@@ -307,6 +316,21 @@ function HTTP(newXMLHTTPRequest) {
     }
 
     /**
+     * gets/sets the online status of this object.
+     * @param val {boolean} truthy sets isOnline to true, false sets isOnline to false
+     * @returns {boolean}
+     */
+    function online(val) {
+        if (val) {
+            isOnline = true;
+        }
+        if (val === false) {
+            isOnline = false;
+        }
+        return isOnline;
+    }
+
+    /**
      * expose the api
      */
     function expose() {
@@ -316,6 +340,7 @@ function HTTP(newXMLHTTPRequest) {
         that['onNoAccess'] = addNoAccess;
         that['newRequest'] = newRequest;
         that['timeout'] = timeout;
+        that['online'] = online;
         that['log'] = log;
     }
 
