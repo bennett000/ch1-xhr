@@ -63,10 +63,60 @@ describe('http API', function () {
         expect(typeof http.setPromiseLib).toBe('function');
     });
 
+    it('should have a timeout function', function () {
+        expect(typeof http.timeout).toBe('function');
+    });
+
     it('should have PUT/POST/GET functions', function () {
         expect(typeof http.put).toBe('function');
         expect(typeof http.post).toBe('function');
         expect(typeof http.get).toBe('function');
+    });
+});
+
+describe('timeout configuration', function () {
+    'use strict';
+    it('should return the current timeout value', function () {
+        expect(typeof http.timeout()).toBe('number');
+    });
+
+    it('should set a timeout value, given a valid input (>= 2500)', function () {
+        expect(http.timeout(5000)).toBe(5000);
+        expect(http.timeout(2500)).toBe(2500);
+        expect(http.timeout(600)).toBe(2500);
+        expect(http.timeout(-235252)).toBe(2500);
+        expect(http.timeout(235252)).toBe(235252);
+        expect(http.timeout(NaN)).toBe(235252);
+        expect(http.timeout(Infinity)).toBe(235252);
+        expect(http.timeout({})).toBe(235252);
+        expect(http.timeout(600000)).toBe(600000);
+        expect(http.timeout([])).toBe(600000);
+    });
+
+    it('should trigger a false result if a request exceeds its limit', function () {
+        var limit = 3000, done = false, message = false;
+
+        // lets make the test reasonably short
+        expect(http.timeout(limit)).toBe(limit);
+
+        // trigger a request
+        http.get('blah').then(function notExpected() {
+
+        }, function expected () {
+            message = true;
+        });
+
+        setTimeout(function () {
+            done = true;
+        }, limit + 50);
+
+        waitsFor(function () {
+            return done;
+        });
+
+        runs(function () {
+            expect(message).toBe(true);
+        });
     });
 });
 
@@ -143,6 +193,7 @@ describe('methods', function () {
         it('should return a promise', function () {
             result = http.get('myResource');
             expect(typeof result.then).toBe('function');
+            mocks[0].receive(200);
         });
 
         it('should resolve the promise on a valid response', function () {
@@ -162,6 +213,18 @@ describe('methods', function () {
 
             mocks[0].receive(200, 'done!');
             expect(done).toBe(true);
+        });
+
+        it('should build a given query string', function () {
+            http.get('myResource', { hello:'yo!' });
+            expect(mocks[0].urlParts.queryKey.hello).toBe('yo!');
+
+            http.get('myResource', { hello:'yo!', goodbye: 'ta!' });
+            expect(mocks[1].urlParts.queryKey.hello).toBe('yo!');
+            expect(mocks[1].urlParts.queryKey.goodbye).toBe('ta!');
+
+            mocks[0].receive(200);
+            mocks[1].receive(200);
         });
 
         it('should resolve the promise on an invalid response', function () {
@@ -236,7 +299,7 @@ describe('methods', function () {
             var done = false;
             http.put('myResource').then(function (result) {
                 done = false;
-            }, function (reason) {
+            }, function () {
                 done = true;
             });
 
@@ -300,6 +363,19 @@ describe('methods', function () {
 
 
             mocks[0].receive(200, 'done!');
+            expect(done).toBe(true);
+        });
+
+        it('should fail given a network error', function () {
+            var done = false;
+            http.get('something').then(function () {
+
+            }, function (err) {
+                done = true;
+            });
+
+            mocks[0].err(new Error('error!'));
+
             expect(done).toBe(true);
         });
     });

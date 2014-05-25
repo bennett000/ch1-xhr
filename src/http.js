@@ -17,7 +17,8 @@ function HTTP(newXMLHTTPRequest) {
         /** @dict */
         consts = Object.freeze({
             json: 'application/json',
-            noop: function () {}
+            noop: function () {
+            }
         }),
         defaultHeaders = Object.create(null),
         /** @type Array.<function(...)> */
@@ -30,7 +31,7 @@ function HTTP(newXMLHTTPRequest) {
         log = console;
     } else {
         log = {
-            log : consts.noop,
+            log: consts.noop,
             info: consts.noop,
             warn: consts.noop,
             error: consts.noop,
@@ -42,7 +43,7 @@ function HTTP(newXMLHTTPRequest) {
      * @param fn {function (...)}
      * @returns {boolean}
      */
-    function isFunction (fn) {
+    function isFunction(fn) {
         return typeof fn === 'function';
     }
 
@@ -50,7 +51,7 @@ function HTTP(newXMLHTTPRequest) {
      * upgrades the logger
      * @param newLog
      */
-    function setLogger (newLog) {
+    function setLogger(newLog) {
         if (isFunction(newLog.log) && isFunction(newLog.info) && isFunction(newLog.warn) && isFunction(newLog.error) && isFunction(newLog.assert)) {
             Object.keys(newLog).forEach(function (newLogAttr) {
                 log[newLogAttr] = newLog[newLogAttr];
@@ -96,7 +97,6 @@ function HTTP(newXMLHTTPRequest) {
         HTTP.prototype['Q'] = lib;
         return true;
     }
-
 
 
     /**
@@ -157,6 +157,11 @@ function HTTP(newXMLHTTPRequest) {
         });
     }
 
+    /**
+     * assigns the default headers, then assigns given headers
+     * @param xhr {Object}
+     * @param localHeaders {Object}
+     */
     function setHeaders(xhr, localHeaders) {
         setDefaultHeaders(xhr);
 
@@ -187,9 +192,9 @@ function HTTP(newXMLHTTPRequest) {
 
         /** @type {!Object} */
         var xhr = newXMLHTTPRequest(),
-        /** @type {!Object} */
-        deferred = Q.defer(),
-        timer = false;
+            /** @type {!Object} */
+            deferred = Q.defer(),
+            timer = false;
 
         if ((method === 'POST') || (method === 'PUT')) {
             if (!data) {
@@ -206,11 +211,11 @@ function HTTP(newXMLHTTPRequest) {
         }
 
         function onerror(reason) {
-            reason = (reason === undefined) ? 'fatal error' : reason;
+            reason = (!reason) ? 'fatal error' : reason;
 
             deferred.reject(new Error(['http',
-                                          reason,
-                                          JSON.stringify(url)].join(':')));
+                reason,
+                JSON.stringify(url)].join(':')));
             clearTimer();
         }
 
@@ -245,8 +250,8 @@ function HTTP(newXMLHTTPRequest) {
             /** @type {function(...)} */
             xhr.onload = onload;
             /** @type {function(...)} */
-            xhr.onerror = function (e) {
-                onerror('http error ' + e.message);
+            xhr.onerror = function () {
+                onerror('http error');
             };
             /** @type {function(...)} */
             xhr.onprogress = onprogress;
@@ -258,13 +263,6 @@ function HTTP(newXMLHTTPRequest) {
             } else {
                 setDefaultHeaders(xhr);
             }
-            /*
-            if (xsrf !== undefined) {
-                xhr.setRequestHeader('X-XSRF-TOKEN', xsrf);
-            }
-            if (bearer !== undefined) {
-                xhr.setRequestHeader('Authorization', 'Bearer ' + bearer);
-            }*/
 
             if ((data === null) ||
                 (data === false) ||
@@ -280,10 +278,10 @@ function HTTP(newXMLHTTPRequest) {
 
         timer = setTimeout(function () {
             var errorstr = 'request timed out';
+
             try {
                 xhr.abort();
                 onerror(errorstr);
-
             } catch (err) {
                 errorstr = err.message;
                 onerror(errorstr);
@@ -291,6 +289,21 @@ function HTTP(newXMLHTTPRequest) {
         }, defaultTimeout);
 
         return deferred.promise;
+    }
+
+    /**
+     * gets/sets the default timeout
+     * @param val {number}
+     * @returns {number}
+     */
+    function timeout(val) {
+        if (!val) { return defaultTimeout; }
+        val = val.toString();
+        val = +val;
+        if (!val) { return defaultTimeout; }
+        if ((val < 2500) || (val > 600000)) { return defaultTimeout; }
+        defaultTimeout = +val;
+        return defaultTimeout;
     }
 
     /**
@@ -302,18 +315,20 @@ function HTTP(newXMLHTTPRequest) {
         that['defaultHeader'] = defaultHeader;
         that['onNoAccess'] = addNoAccess;
         that['newRequest'] = newRequest;
+        that['timeout'] = timeout;
         that['log'] = log;
     }
 
     /**
      * initialize the object
      */
-    function init () {
+    function init() {
         newXMLHTTPRequest = typeof newXMLHTTPRequest === 'function' ? newXMLHTTPRequest : function () {
             return new XMLHttpRequest(Array.prototype.slice.call(arguments, 0));
         };
         expose();
     }
+
     init();
 }
 
@@ -330,25 +345,25 @@ HTTP.prototype['get'] = function get(url, queryObj, headers) {
 };
 
 /**
-* @param {string} url
-* @param {*} data
-* @param {Object=} queryObj
-* @param {Object=} headers
-*
-* @return {!Object}
-*/
+ * @param {string} url
+ * @param {*} data
+ * @param {Object=} queryObj
+ * @param {Object=} headers
+ *
+ * @return {!Object}
+ */
 HTTP.prototype['put'] = function put(url, data, queryObj, headers) {
     'use strict';
     return this.newRequest('PUT', url, queryObj, data, undefined, headers);
 };
 
 /**
-* @param {string} url
-* @param {*} data
-* @param {!Object=} queryObj
-*
-* @return {!Object}
-*/
+ * @param {string} url
+ * @param {*} data
+ * @param {!Object=} queryObj
+ *
+ * @return {!Object}
+ */
 HTTP.prototype['post'] = function post(url, data, queryObj, headers) {
     'use strict';
     return this.newRequest('POST', url, queryObj, data, undefined, headers);
