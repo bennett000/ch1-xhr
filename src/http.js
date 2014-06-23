@@ -97,6 +97,7 @@ function HTTP(newXMLHTTPRequest) {
         }
 
         HTTP.prototype['Q'] = lib;
+        Q = lib;
         return true;
     }
 
