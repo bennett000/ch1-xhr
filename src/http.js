@@ -266,7 +266,7 @@ function HTTP(newXMLHTTPRequest) {
             /** @type {function(...)} */
             xhr.onprogress = onprogress;
 
-            xhr.open(method, url, true);
+            xhr.open(method, that.host + url, true);
             xhr.setRequestHeader('Content-Type', mimeType);
             if ((headers) && (typeof headers === 'object')) {
                 setHeaders(xhr, headers);
@@ -342,6 +342,7 @@ function HTTP(newXMLHTTPRequest) {
         that['newRequest'] = newRequest;
         that['timeout'] = timeout;
         that['online'] = online;
+        that['host'] = '';
         that['log'] = log;
     }
 

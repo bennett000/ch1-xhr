@@ -241,6 +241,28 @@ describe('promise configuration', function () {
 
 describe('methods', function () {
     'use strict';
+    
+    describe('host feature', function () {
+        it('should prefix urls with \'this.host\'', function () {
+            var done = false;
+            http.host = 'http://ooga/';
+            http.get('myResource').then(function (result) {
+                done = true;
+                expect(result).toBe('done!');
+            }, function (reason) {
+                done = false;
+                console.log(reason);
+            });
+
+            expect(mocks[0].method).toBe('GET');
+            expect(mocks[0].url).toBe('http://ooga/myResource');
+            expect(mocks[0].getRequestHeader('Content-Type')).toBe('application/json');
+
+
+            mocks[0].receive(200, 'done!');
+            expect(done).toBe(true);
+        });
+    });
 
     describe('get', function () {
         var result;
