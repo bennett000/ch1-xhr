@@ -138,12 +138,13 @@ function HTTP(newXMLHTTPRequest) {
     }
 
     /**
+     * @param {number} code - HTTP response code
      * triggers the items in noAccess
      */
-    function onNoAccess() {
+    function onNoAccess(code) {
         noAccessHooks.forEach(function (hook) {
             try {
-                hook();
+                hook(code);
             } catch (err) {
                 // fail silent
             }
@@ -240,7 +241,7 @@ function HTTP(newXMLHTTPRequest) {
             }
             // if the header has a 400/401 status trip the logout flag
             if (( xhr.status === 401) || (xhr.status === 400)) {
-                onNoAccess();
+                onNoAccess(+xhr.status);
             }
             // otherwise error/unexpected
             onerror('status code');
