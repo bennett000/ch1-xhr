@@ -1,34 +1,95 @@
 {
-  "name": "http-client",
-  "description": "http-client-interface",
-  "version": "0.2.0",
-  "private": true,
-  "repository": {
-    "type": "git",
-    "url": "ssh://dev.higginsregister.com/srv/repo/js-browser-http.git"
+  "name": "@ch1/xhr",
+  "version": "0.1.0",
+  "description": "Simple XHR Wrapper",
+  "keywords": [
+    "CH1",
+    "XHR",
+    "XmlHttpRequest"
+  ],
+  "main": "src/index.ts",
+  "module": "src/index.ts",
+  "typings": "src/index.ts",
+  "repository": "https://github.com/bennett000/ch1-xhr",
+  "homepage": "https://github.com/bennett000/ch1-xhr",
+  "bugs": "https://github.com/bennett000/ch1-xhr/issues",
+  "author": "dev@michaeljbennett.info",
+  "contributors": [],
+  "license": "LGPL-3.0",
+  "private": false,
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{js,json,css,md}": [
+      "prettier --single-quote --write src/**/*.ts",
+      "git add"
+    ]
+  },
+  "jest": {
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+      "**/*.{ts,tsx}",
+      "!**/node_modules/**",
+      "!**/coverage/**",
+      "!**/dist/**",
+      "!**/*.d.ts",
+      "!**/interfaces.ts",
+      "!**/index.ts"
+    ],
+    "coverageDirectory": "coverage/",
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "/coverage/",
+      "/dist/"
+    ],
+    "coverageReporters": [
+      "json",
+      "lcov",
+      "text",
+      "html"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "functions": 80,
+        "lines": 80,
+        "statements": 90
+      }
+    },
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "transformIgnorePatterns": [
+      "^node_modules/(?!@ch1).*$"
+    ],
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ]
   },
   "devDependencies": {
-    "jasmine-node": "~1.14.2",
-    "grunt": "~0.4.3",
-    "karma-script-launcher": "~0.1.0",
-    "karma-firefox-launcher": "~0.1.3",
-    "karma-html2js-preprocessor": "~0.1.0",
-    "karma-chrome-launcher": "~0.1.2",
-    "karma-jasmine": "~0.1.5",
-    "requirejs": "~2.1.11",
-    "karma-requirejs": "~0.2.1",
-    "karma-coffee-preprocessor": "~0.1.3",
-    "karma-phantomjs-launcher": "~0.1.2",
-    "karma": "~0.12.0",
-    "grunt-contrib-uglify": "~0.4.0",
-    "grunt-contrib-jshint": "~0.8.0",
-    "grunt-mkdir": "~0.1.1",
-    "grunt-contrib-copy": "~0.5.0",
-    "grunt-preprocessor": "~0.4.0",
-    "grunt-text-replace": "~0.3.11",
-    "karma-coverage": "~0.2.0",
-    "grunt-contrib-concat": "~0.3.0",
-    "grunt-write-bower-json": "git+ssh://dev.higginsregister.com/srv/npm/grunt-write-bower-json.git#v0.0.4",
-    "grunt-insert": "~0.1.0"
+    "@types/jest": "^23.3.1",
+    "@types/node": "^10.9.4",
+    "husky": "^1.0.0-rc.13",
+    "jest": "^23.5.0",
+    "lint-staged": "^7.2.2",
+    "prettier": "^1.14.2",
+    "ts-jest": "^23.1.4",
+    "typescript": "^3.0.3"
+  },
+  "dependencies": {
+    "@ch1/utility": "^0.1.2"
   }
 }

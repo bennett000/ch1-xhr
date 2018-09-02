@@ -5,24 +5,20 @@
 node_modules
 npm-debug.log
 
-# Vim / Emacs
+# Vim / Emacs / intellij
 *~
 *.swp
 *.swo
 *~
 *#
+.idea
 
-# I like tmp folders
+# tmp folders
 tmp
 
-# I like Web Storm
-.idea/workspace.xml
+dist/
+coverage/
+intermediate/
 
-# libraries are managed by bower
-lib
-
-# build folder
-build
-
-# coverage folder
-coverage
+.yarnclean
+yarn-error*
