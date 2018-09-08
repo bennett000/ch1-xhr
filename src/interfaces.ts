@@ -7,7 +7,9 @@ export type HttpMethod = 'DELETE' | 'GET' | 'POST' | 'PUT';
 export interface IXhr {
   defaultHeader(key: string, value?: string): HttpHeaders;
   get(
-    url: string, queryObj?: Dictionary<any>, headers?: HttpHeaders
+    url: string,
+    queryObj?: Dictionary<any>,
+    headers?: HttpHeaders
   ): Promise<string>;
   newRequest(
     method: HttpMethod,

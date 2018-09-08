@@ -7,21 +7,25 @@ const POLL_INTERVAL = 25;
 export function Xhr(
   newXMLHTTPRequest?: () => XMLHttpRequest,
   defaultTimeout = DEFAULT_TIMEOUT,
-  pollInterval = POLL_INTERVAL,
+  pollInterval = POLL_INTERVAL
 ): IXhr {
   return XhrConstructor(newXMLHTTPRequest as any, defaultTimeout, pollInterval);
 }
 
 function XhrConstructor(
-  this: any, 
+  this: any,
   newXMLHTTPRequest: () => XMLHttpRequest,
   defaultTimeout: number,
-  pollInterval: number,
+  pollInterval: number
 ) {
   let XHRReq = newXMLHTTPRequest;
   // ensure object constructor
   if (!(this instanceof XhrConstructor)) {
-    return new (<any>XhrConstructor)(newXMLHTTPRequest, defaultTimeout, pollInterval);
+    return new (<any>XhrConstructor)(
+      newXMLHTTPRequest,
+      defaultTimeout,
+      pollInterval
+    );
   }
 
   const that = this;
@@ -59,8 +63,9 @@ function XhrConstructor(
    * @param {XMLHttpRequest} xhr
    */
   function setDefaultHttpHeaders(xhr: XMLHttpRequest) {
-    Object.keys(defaultHttpHeaders)
-      .forEach((attr) => xhr.setRequestHeader(attr, defaultHttpHeaders[attr]));
+    Object.keys(defaultHttpHeaders).forEach(attr =>
+      xhr.setRequestHeader(attr, defaultHttpHeaders[attr])
+    );
   }
 
   /**
@@ -70,7 +75,7 @@ function XhrConstructor(
   function setHttpHeaders(xhr: XMLHttpRequest, localHttpHeaders: HttpHeaders) {
     setDefaultHttpHeaders(xhr);
 
-    Object.keys(localHttpHeaders).forEach((attr) => {
+    Object.keys(localHttpHeaders).forEach(attr => {
       xhr.setRequestHeader(attr, localHttpHeaders[attr] + '');
     });
   }
@@ -93,17 +98,15 @@ function XhrConstructor(
     headers: HttpHeaders
   ): Promise<string> {
     return new Promise((resolve, reject) => {
-      const finalMimeType = (mimeType === undefined) ? json : mimeType;
+      const finalMimeType = mimeType === undefined ? json : mimeType;
       const parsedQuery = parseQuery(queryObj);
       const finalUrl = parsedQuery ? url + parsedQuery : url;
       const xhr = (XHRReq as any)();
       let timer: any;
 
-      if ((method === 'POST') || (method === 'PUT')) {
+      if (method === 'POST' || method === 'PUT') {
         if (!data) {
-          reject(new Error(
-            'xhr: newRequest: ' + method + ': requires data')
-          );
+          reject(new Error('xhr: newRequest: ' + method + ': requires data'));
           return;
         }
       }
@@ -131,7 +134,7 @@ function XhrConstructor(
         }
 
         // if the header has a 200, or 201 status handle it
-        if ((xhr.status === 200) || (xhr.status === 201)) {
+        if (xhr.status === 200 || xhr.status === 201) {
           resolve(xhr.responseText);
           clearTimer();
           return;
@@ -148,7 +151,7 @@ function XhrConstructor(
         xhr.onerror = onerror;
         xhr.open(method, finalUrl, true);
         xhr.setRequestHeader('Content-Type', finalMimeType);
-        if ((headers) && (typeof headers === 'object')) {
+        if (headers && typeof headers === 'object') {
           setHttpHeaders(xhr, headers);
         } else {
           setDefaultHttpHeaders(xhr);
@@ -177,9 +180,10 @@ function XhrConstructor(
    * initialize the object
    */
   function init() {
-    XHRReq = typeof newXMLHTTPRequest === 'function' ?
-      newXMLHTTPRequest :
-      () => new XMLHttpRequest();
+    XHRReq =
+      typeof newXMLHTTPRequest === 'function'
+        ? newXMLHTTPRequest
+        : () => new XMLHttpRequest();
     that['defaultHeader'] = defaultHeader;
     that['newRequest'] = newRequest;
   }
@@ -192,10 +196,17 @@ function XhrConstructor(
  * @returns {Promise<string>}
  */
 XhrConstructor.prototype['get'] = function get(
-  url: string, queryObj?: Dictionary<any>, headers?: HttpHeaders
+  url: string,
+  queryObj?: Dictionary<any>,
+  headers?: HttpHeaders
 ) {
   return this['newRequest'](
-    'GET', url, queryObj, undefined, undefined, headers
+    'GET',
+    url,
+    queryObj,
+    undefined,
+    undefined,
+    headers
   );
 };
 
