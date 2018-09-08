@@ -10,14 +10,14 @@ describe('xhr wrapper', () => {
     }
 
     beforeEach(() => {
-      xhrObj = {
+      xhrObj = ({
         abort: noop,
         open: noop,
         readyState: -1,
         setRequestHeader: noop,
         send: noop,
-        status: -1,
-      } as any as XMLHttpRequest; // yes, this is fake :)
+        status: -1
+      } as any) as XMLHttpRequest; // yes, this is fake :)
     });
 
     it('creates with a custom ', () => {
@@ -29,7 +29,9 @@ describe('xhr wrapper', () => {
     it('times out if nothing happens', () => {
       const x = Xhr(FakeHttpRequest, 1);
 
-      return expect(x.get('/foo')).rejects.toEqual(new Error('xhr: request timed out'));
+      return expect(x.get('/foo')).rejects.toEqual(
+        new Error('xhr: request timed out')
+      );
     });
 
     it('resolves if the readyState is 4 and the response is 200', () => {
@@ -55,7 +57,9 @@ describe('xhr wrapper', () => {
       (xhrObj as any).status = 404;
       (xhrObj as any).onload();
 
-      return expect(promise).rejects.toEqual(new Error('xhr: non 200 status: 404'));
+      return expect(promise).rejects.toEqual(
+        new Error('xhr: non 200 status: 404')
+      );
     });
 
     it('resolves if the readyState is 4 and the response is 201', () => {
@@ -71,17 +75,19 @@ describe('xhr wrapper', () => {
       return expect(promise).resolves.toEqual('working');
     });
 
-    it('defers until readyState is 4 and the response is 200', (done) => {
+    it('defers until readyState is 4 and the response is 200', done => {
       const x = Xhr(FakeHttpRequest, 100, 1);
       let didRun = false;
       let didCheck = false;
 
-      x.get('/some/resource').then((value: string) => {
-        didRun = true;
-        expect(value).toBe('working');
-        expect(didCheck).toBe(true);
-        done();
-      }).catch(done);
+      x.get('/some/resource')
+        .then((value: string) => {
+          didRun = true;
+          expect(value).toBe('working');
+          expect(didCheck).toBe(true);
+          done();
+        })
+        .catch(done);
 
       // Trigger the test
       (xhrObj as any).readyState = 2;
@@ -95,11 +101,8 @@ describe('xhr wrapper', () => {
         (xhrObj as any).readyState = 4;
       }, 5);
 
-
-
       (xhrObj as any).status = 200;
       (xhrObj as any).responseText = 'working';
-
     });
 
     it('forwards headers', () => {
@@ -107,7 +110,7 @@ describe('xhr wrapper', () => {
       const headers: { [key: string]: string } = {};
       xhrObj.setRequestHeader = (key: string, value: string) => {
         headers[key] = value;
-      }
+      };
       x.get('/some/resource', undefined, { Authorization: 'bearer' });
       expect(headers.Authorization).toBe('bearer');
     });
@@ -117,7 +120,7 @@ describe('xhr wrapper', () => {
       const headers: { [key: string]: string } = {};
       xhrObj.setRequestHeader = (key: string, value: string) => {
         headers[key] = value;
-      }
+      };
       x.defaultHeader('Authorization', 'bearer');
       x.get('/some/resource');
       expect(headers.Authorization).toBe('bearer');
@@ -128,7 +131,7 @@ describe('xhr wrapper', () => {
       let headers: { [key: string]: string } = {};
       xhrObj.setRequestHeader = (key: string, value: string) => {
         headers[key] = value;
-      }
+      };
       x.defaultHeader('Authorization', 'bearer');
       x.get('/some/resource');
       expect(headers.Authorization).toBe('bearer');
@@ -143,7 +146,7 @@ describe('xhr wrapper', () => {
       let headers: { [key: string]: string } = {};
       xhrObj.setRequestHeader = (key: string, value: string) => {
         headers[key] = value;
-      }
+      };
       x.defaultHeader('Authorization', 'bearer');
       x.get('/some/resource');
       expect(headers.Authorization).toBe('bearer');
@@ -159,7 +162,7 @@ describe('xhr wrapper', () => {
       const headers: { [key: string]: string } = {};
       xhrObj.setRequestHeader = (key: string, value: string) => {
         headers[key] = value;
-      }
+      };
       x.defaultHeader('', 'bearer');
       x.get('/some/resource');
       expect(headers['']).toBe(undefined);
@@ -170,7 +173,7 @@ describe('xhr wrapper', () => {
       const headers: { [key: string]: string } = {};
       xhrObj.setRequestHeader = (key: string, value: string) => {
         headers[key] = value;
-      }
+      };
       x.defaultHeader('foo', 7 as any);
       x.get('/some/resource');
       expect(headers['foo']).toBe('7');
@@ -178,21 +181,25 @@ describe('xhr wrapper', () => {
 
     it('rejects put calls that have no data', () => {
       const x = Xhr(FakeHttpRequest);
-      return expect(x.put('/somthing')).rejects.toEqual(new Error('xhr: newRequest: PUT: requires data'));
+      return expect(x.put('/somthing')).rejects.toEqual(
+        new Error('xhr: newRequest: PUT: requires data')
+      );
     });
 
     it('rejects post calls that have no data', () => {
       const x = Xhr(FakeHttpRequest);
-      return expect(x.post('/somthing')).rejects.toEqual(new Error('xhr: newRequest: POST: requires data'));
+      return expect(x.post('/somthing')).rejects.toEqual(
+        new Error('xhr: newRequest: POST: requires data')
+      );
     });
 
     it('stringifies post data', () => {
       const x = Xhr(FakeHttpRequest);
       const obj = { foo: 'bar' };
       let rec: any = null;
-      xhrObj.send = ((value: any) => {
+      xhrObj.send = (value: any) => {
         rec = value;
-      });
+      };
       x.post('/somthing', obj);
       expect(rec).toEqual(JSON.stringify(obj));
     });
@@ -200,9 +207,9 @@ describe('xhr wrapper', () => {
     it('rejects if something blows up synchronously', () => {
       const x = Xhr(FakeHttpRequest);
       const error = new Error('chaos!');
-      xhrObj.send = ((value: any) => {
+      xhrObj.send = (value: any) => {
         throw error;
-      });
+      };
       return expect(x.get('/somthing')).rejects.toBe(error);
     });
   });
