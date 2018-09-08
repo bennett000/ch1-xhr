@@ -4,7 +4,7 @@
 
 _This is not well maintained_
 
-[_This library ships as TypeScript, Beware_](https://gist.github.com/bennett000/a26dfc8cf15e5d97139e41b0711f3fe0#file-the-case-for-shipping-ts-as-ts-md 'Why Ship TS as TS')
+_This library ships only es6 modules with \*.d.ts files, beware_
 
 ## Installation
 

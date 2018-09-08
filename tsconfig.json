@@ -1,9 +1,10 @@
 {
   "compilerOptions": {
     "declaration": true,
-    "module": "commonjs",
-    "target": "es2015",
-    "outDir": "./intermediate",
+    "module": "es6",
+    "moduleResolution": "node",
+    "target": "es6",
+    "outDir": "./dist",
     "sourceMap": true,
     "strict": true
   }
