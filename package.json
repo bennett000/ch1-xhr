@@ -1,13 +1,13 @@
 {
   "name": "@ch1/xhr",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Simple XHR Wrapper",
   "keywords": [
     "CH1",
     "XHR",
     "XmlHttpRequest"
   ],
-  "main": "dist/index.js",
+  "main": "dist/index.cjs.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "https://github.com/bennett000/ch1-xhr",
@@ -20,6 +20,7 @@
   "scripts": {
     "prebuild": "rimraf ./dist",
     "build": "tsc",
+    "postbuild": "rollup --input ./dist/index.js --sourcemap --format cjs --file ./dist/index.cjs.js",
     "pretest": "rimraf ./coverage && rimraf ./dist",
     "test": "jest",
     "test:watch": "jest --watch"
@@ -90,6 +91,7 @@
     "lint-staged": "^7.2.2",
     "prettier": "^1.14.2",
     "rimraf": "^2.6.2",
+    "rollup": "^0.65.2",
     "ts-jest": "^23.1.4",
     "typescript": "^3.0.3"
   },
