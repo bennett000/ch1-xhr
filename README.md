@@ -4,8 +4,6 @@
 
 _This is not well maintained_
 
-_This library ships only es6 modules with \*.d.ts files, beware_
-
 ## Installation
 
 `yarn add @ch1/xhr`
